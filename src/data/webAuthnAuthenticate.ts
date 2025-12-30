@@ -28,6 +28,156 @@ type StoreType = {
   };
 };
 
+// Singleton for abort controller
+let abortController: AbortController | undefined = undefined;
+
+export function signal(): AbortSignal {
+  if (abortController) {
+    // abort the previous call
+    const abortError = new Error('Cancelling pending WebAuthn call');
+    abortError.name = 'AbortError';
+    abortController.abort(abortError);
+  }
+
+  abortController = new AbortController();
+  return abortController.signal;
+}
+
+export interface AuthenticateInput {
+  isUserIdentified: boolean;
+  challenge: string;
+  userVerification: string;
+  rpId: string;
+  createTimeout: number;
+  errmsg: string;
+  additionalOptions?: CredentialRequestOptions;
+}
+
+export async function authenticateByWebAuthn(input: AuthenticateInput): Promise<void> {
+  if (!input.isUserIdentified) {
+    try {
+      const result = await doAuthenticate([], input.challenge, input.userVerification, input.rpId, input.createTimeout, input.errmsg, input.additionalOptions);
+      returnSuccess(result);
+    } catch (error) {
+      returnFailure(error instanceof Error ? error.message : String(error));
+    }
+    return;
+  }
+  checkAllowCredentials(input.challenge, input.userVerification, input.rpId, input.createTimeout, input.errmsg);
+}
+
+async function checkAllowCredentials(challenge: string, userVerification: string, rpId: string, createTimeout: number, errmsg: string) {
+  const allowCredentials: PublicKeyCredentialDescriptor[] = [];
+  const authnSelectForm = document.forms.namedItem('authn_select') as HTMLFormElement | null;
+  
+  if (authnSelectForm) {
+    const authnUse = authnSelectForm.elements.namedItem('authn_use_chk') as HTMLInputElement | RadioNodeList | null;
+    if (authnUse !== null && authnUse !== undefined) {
+      if (authnUse instanceof HTMLInputElement) {
+        allowCredentials.push({
+          id: new Uint8Array(base64url.parse(authnUse.value, { loose: true })),
+          type: 'public-key',
+        });
+      } else if (authnUse.length !== undefined) {
+        // RadioNodeList
+        for (let i = 0; i < authnUse.length; i++) {
+          const entry = authnUse[i] as HTMLInputElement;
+          allowCredentials.push({
+            id: new Uint8Array(base64url.parse(entry.value, { loose: true })),
+            type: 'public-key',
+          });
+        }
+      }
+    }
+  }
+  
+  try {
+    const result = await doAuthenticate(allowCredentials, challenge, userVerification, rpId, createTimeout, errmsg);
+    returnSuccess(result);
+  } catch (error) {
+    returnFailure(error instanceof Error ? error.message : String(error));
+  }
+}
+
+async function doAuthenticate(
+  allowCredentials: PublicKeyCredentialDescriptor[],
+  challenge: string,
+  userVerification: string,
+  rpId: string,
+  createTimeout: number,
+  errmsg: string,
+  additionalOptions?: CredentialRequestOptions
+): Promise<PublicKeyCredential> {
+  // Check if WebAuthn is supported by this browser
+  if (!window.PublicKeyCredential) {
+    throw new Error(errmsg);
+  }
+
+  const publicKey: PublicKeyCredentialRequestOptions = {
+    rpId: rpId,
+    challenge: new Uint8Array(base64url.parse(challenge, { loose: true })),
+  };
+
+  if (createTimeout !== 0) {
+    publicKey.timeout = createTimeout * 1000;
+  }
+
+  if (allowCredentials.length) {
+    publicKey.allowCredentials = allowCredentials;
+  }
+
+  if (userVerification !== 'not specified') {
+    publicKey.userVerification = userVerification as UserVerificationRequirement;
+  }
+
+  return navigator.credentials.get({
+    publicKey: publicKey,
+    signal: signal(),
+    ...additionalOptions,
+  }) as Promise<PublicKeyCredential>;
+}
+
+export function returnSuccess(result: PublicKeyCredential): void {
+  if (!(result.response instanceof AuthenticatorAssertionResponse)) {
+    throw new Error('Invalid response type');
+  }
+
+  const clientDataJSONEl = document.getElementById('clientDataJSON') as HTMLInputElement;
+  const authenticatorDataEl = document.getElementById('authenticatorData') as HTMLInputElement;
+  const signatureEl = document.getElementById('signature') as HTMLInputElement;
+  const credentialIdEl = document.getElementById('credentialId') as HTMLInputElement;
+  const userHandleEl = document.getElementById('userHandle') as HTMLInputElement;
+  const webauthForm = document.getElementById('webauth') as HTMLFormElement;
+
+  if (!clientDataJSONEl || !authenticatorDataEl || !signatureEl || !credentialIdEl || !webauthForm) {
+    throw new Error('Required form elements not found');
+  }
+
+  clientDataJSONEl.value = base64url.stringify(new Uint8Array(result.response.clientDataJSON), { pad: false });
+  authenticatorDataEl.value = base64url.stringify(new Uint8Array(result.response.authenticatorData), { pad: false });
+  signatureEl.value = base64url.stringify(new Uint8Array(result.response.signature), { pad: false });
+  credentialIdEl.value = result.id;
+  
+  if (result.response.userHandle && userHandleEl) {
+    userHandleEl.value = base64url.stringify(new Uint8Array(result.response.userHandle), { pad: false });
+  }
+  
+  webauthForm.requestSubmit();
+}
+
+export function returnFailure(err: string): void {
+  const errorEl = document.getElementById('error') as HTMLInputElement;
+  const webauthForm = document.getElementById('webauth') as HTMLFormElement;
+
+  if (!errorEl || !webauthForm) {
+    throw new Error('Required form elements not found');
+  }
+
+  errorEl.value = err;
+  webauthForm.requestSubmit();
+}
+
+// Alpine.js integration for webauthn-authenticate.ftl
 document.addEventListener('alpine:init', () => {
   Alpine.data('webAuthnAuthenticate', function (this: DataType) {
     const {
@@ -49,7 +199,7 @@ document.addEventListener('alpine:init', () => {
       userVerification,
     } = this.$store.webAuthnAuthenticate;
 
-    const doAuthenticate = (allowCredentials: PublicKeyCredentialDescriptor[]) => {
+    const doAuthenticateAlpine = (allowCredentials: PublicKeyCredentialDescriptor[]) => {
       if (!window.PublicKeyCredential) {
         errorInput.value = unsupportedBrowserText;
         webAuthnForm.submit();
@@ -58,7 +208,7 @@ document.addEventListener('alpine:init', () => {
       }
 
       const publicKey: PublicKeyCredentialRequestOptions = {
-        challenge: base64url.parse(challenge, { loose: true }),
+        challenge: new Uint8Array(base64url.parse(challenge, { loose: true })),
         rpId: rpId,
       };
 
@@ -121,7 +271,7 @@ document.addEventListener('alpine:init', () => {
           authnSelectFormElements.forEach((element) => {
             if (element instanceof HTMLInputElement) {
               allowCredentials.push({
-                id: base64url.parse(element.value, { loose: true }),
+                id: new Uint8Array(base64url.parse(element.value, { loose: true })),
                 type: 'public-key',
               });
             }
@@ -129,13 +279,13 @@ document.addEventListener('alpine:init', () => {
         }
       }
 
-      doAuthenticate(allowCredentials);
+      doAuthenticateAlpine(allowCredentials);
     };
 
     return {
       webAuthnAuthenticate: () => {
         if (!isUserIdentified) {
-          doAuthenticate([]);
+          doAuthenticateAlpine([]);
 
           return;
         }

@@ -7,6 +7,7 @@
 <#import "components/atoms/link.ftl" as link>
 <#import "components/molecules/identity-provider.ftl" as identityProvider>
 <#import "features/labels/username.ftl" as usernameLabel>
+<#import "passkeys.ftl" as passkeys>
 
 <#assign usernameLabel><@usernameLabel.kw /></#assign>
 
@@ -69,6 +70,7 @@
           </@button.kw>
         </@buttonGroup.kw>
       </@form.kw>
+      <@passkeys.conditionalUIData />
     </#if>
   <#elseif section="info">
     <#if realm.password && realm.registrationAllowed && !registrationDisabled??>
