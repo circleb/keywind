@@ -4,66 +4,10 @@
   <div class="pt-4 separate text-secondary-600 dark:text-gray-400 text-sm">
     ${msg("identity-provider-login-label")}
   </div>
-  <div class="gap-4 grid grid-cols-3">
+  <div class="gap-4 grid">
     <#list providers as provider>
-      <#switch provider.alias>
-        <#case "apple">
-          <#assign colorClass="hover:bg-provider-apple/10">
-          <#break>
-        <#case "bitbucket">
-          <#assign colorClass="hover:bg-provider-bitbucket/10">
-          <#break>
-        <#case "discord">
-          <#assign colorClass="hover:bg-provider-discord/10">
-          <#break>
-        <#case "facebook">
-          <#assign colorClass="hover:bg-provider-facebook/10">
-          <#break>
-        <#case "github">
-          <#assign colorClass="hover:bg-provider-github/10">
-          <#break>
-        <#case "gitlab">
-          <#assign colorClass="hover:bg-provider-gitlab/10">
-          <#break>
-        <#case "google">
-          <#assign colorClass="hover:bg-provider-google/10">
-          <#break>
-        <#case "instagram">
-          <#assign colorClass="hover:bg-provider-instagram/10">
-          <#break>
-        <#case "linkedin-openid-connect">
-          <#assign colorClass="hover:bg-provider-linkedin/10">
-          <#break>
-        <#case "microsoft">
-          <#assign colorClass="hover:bg-provider-microsoft/10">
-          <#break>
-        <#case "oidc">
-          <#assign colorClass="hover:bg-provider-oidc/10">
-          <#break>
-        <#case "openshift-v3">
-          <#assign colorClass="hover:bg-provider-openshift/10">
-          <#break>
-        <#case "openshift-v4">
-          <#assign colorClass="hover:bg-provider-openshift/10">
-          <#break>
-        <#case "paypal">
-          <#assign colorClass="hover:bg-provider-paypal/10">
-          <#break>
-        <#case "slack">
-          <#assign colorClass="hover:bg-provider-slack/10">
-          <#break>
-        <#case "stackoverflow">
-          <#assign colorClass="hover:bg-provider-stackoverflow/10">
-          <#break>
-        <#case "twitter">
-          <#assign colorClass="hover:bg-provider-twitter/10">
-          <#break>
-        <#default>
-          <#assign colorClass="hover:bg-secondary-100">
-      </#switch>
-
       <a
-        class="${colorClass} border border-secondary-200 dark:border-gray-600 flex justify-center py-2 rounded-lg hover:border-transparent dark:hover:border-gray-500"
+        class="bg-secondary-100 dark:bg-gray-700 text-secondary-600 dark:text-gray-300 focus:ring-secondary-600 dark:focus:ring-gray-500 hover:bg-secondary-200 dark:hover:bg-gray-600 hover:text-secondary-900 dark:hover:text-white flex justify-center py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 px-4"
         data-provider="${provider.alias}"
         href="${provider.loginUrl}"
         type="button"
