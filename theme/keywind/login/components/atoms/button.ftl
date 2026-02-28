@@ -4,7 +4,7 @@
       <#assign colorClass="bg-primary-600 dark:bg-primary-500 text-white focus:ring-primary-600 dark:focus:ring-primary-400 hover:bg-primary-700 dark:hover:bg-primary-600">
       <#break>
     <#case "secondary">
-      <#assign colorClass="bg-secondary-100 dark:bg-gray-700 text-secondary-600 dark:text-gray-300 focus:ring-secondary-600 dark:focus:ring-gray-500 hover:bg-secondary-200 dark:hover:bg-gray-600 hover:text-secondary-900 dark:hover:text-white">
+      <#assign colorClass="bg-secondary-100 dark:bg-secondary-500 text-secondary-600 dark:text-gray-300 focus:ring-secondary-600 dark:focus:ring-gray-500 hover:bg-secondary-200 dark:hover:bg-gray-600 hover:text-secondary-900 dark:hover:text-white">
       <#break>
     <#default>
       <#assign colorClass="bg-primary-600 dark:bg-primary-500 text-white focus:ring-primary-600 dark:focus:ring-primary-400 hover:bg-primary-700 dark:hover:bg-primary-600">

@@ -21,55 +21,70 @@
     ${msg("loginAccountTitle")}
   <#elseif section="form">
     <#if realm.password>
-      <@form.kw
-        action=url.loginAction
-        method="post"
-        onsubmit="login.disabled = true; return true;"
-      >
-        <input
-          name="credentialId"
-          type="hidden"
-          value="<#if auth.selectedCredential?has_content>${auth.selectedCredential}</#if>"
-        >
-        <@input.kw
-          autocomplete=realm.loginWithEmailAllowed?string("email", "username")
-          autofocus=true
-          disabled=usernameEditDisabled??
-          invalid=messagesPerField.existsError("username", "password")
-          label=usernameLabel
-          message=kcSanitize(messagesPerField.getFirstError("username", "password"))
-          name="username"
-          type="text"
-          value=(login.username)!''
-        />
-        <@input.kw
-          invalid=messagesPerField.existsError("username", "password")
-          label=msg("password")
-          name="password"
-          type="password"
-        />
-        <#if realm.rememberMe && !usernameEditDisabled?? || realm.resetPasswordAllowed>
-          <div class="flex items-center justify-between">
-            <#if realm.rememberMe && !usernameEditDisabled??>
-              <@checkbox.kw
-                checked=login.rememberMe??
-                label=msg("rememberMe")
-                name="rememberMe"
-              />
+      <div x-data="{ showPassword: false }">
+        <div x-show="!showPassword">
+          <@buttonGroup.kw>
+            <button
+              class="bg-secondary-100 dark:bg-secondary-500 text-secondary-600 dark:text-gray-300 focus:ring-secondary-600 dark:focus:ring-gray-500 hover:bg-secondary-200 dark:hover:bg-gray-600 hover:text-secondary-900 dark:hover:text-white px-4 py-2 text-sm flex justify-center relative rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+              type="button"
+              @click="showPassword = true"
+            >
+              Login With Password
+            </button>
+          </@buttonGroup.kw>
+        </div>
+        <div x-show="showPassword" x-cloak>
+          <@form.kw
+            action=url.loginAction
+            method="post"
+            onsubmit="login.disabled = true; return true;"
+          >
+            <input
+              name="credentialId"
+              type="hidden"
+              value="<#if auth.selectedCredential?has_content>${auth.selectedCredential}</#if>"
+            >
+            <@input.kw
+              autocomplete=realm.loginWithEmailAllowed?string("email", "username")
+              autofocus=true
+              disabled=usernameEditDisabled??
+              invalid=messagesPerField.existsError("username", "password")
+              label=usernameLabel
+              message=kcSanitize(messagesPerField.getFirstError("username", "password"))
+              name="username"
+              type="text"
+              value=(login.username)!''
+            />
+            <@input.kw
+              invalid=messagesPerField.existsError("username", "password")
+              label=msg("password")
+              name="password"
+              type="password"
+            />
+            <#if realm.rememberMe && !usernameEditDisabled?? || realm.resetPasswordAllowed>
+              <div class="flex items-center justify-between">
+                <#if realm.rememberMe && !usernameEditDisabled??>
+                  <@checkbox.kw
+                    checked=login.rememberMe??
+                    label=msg("rememberMe")
+                    name="rememberMe"
+                  />
+                </#if>
+                <#if realm.resetPasswordAllowed>
+                  <@link.kw color="primary" href=url.loginResetCredentialsUrl size="small">
+                    ${msg("doForgotPassword")}
+                  </@link.kw>
+                </#if>
+              </div>
             </#if>
-            <#if realm.resetPasswordAllowed>
-              <@link.kw color="primary" href=url.loginResetCredentialsUrl size="small">
-                ${msg("doForgotPassword")}
-              </@link.kw>
-            </#if>
-          </div>
-        </#if>
-        <@buttonGroup.kw>
-          <@button.kw color="primary" name="login" type="submit">
-            ${msg("doLogIn")}
-          </@button.kw>
-        </@buttonGroup.kw>
-      </@form.kw>
+            <@buttonGroup.kw>
+              <@button.kw color="primary" name="login" type="submit">
+                ${msg("doLogIn")}
+              </@button.kw>
+            </@buttonGroup.kw>
+          </@form.kw>
+        </div>
+      </div>
       <#-- <@passkeys.conditionalUIData /> -->
     </#if>
   <#elseif section="socialProviders">
