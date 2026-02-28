@@ -2,6 +2,16 @@
 
 Keywind is a component-based Keycloak Login Theme built with [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss) and [Alpine.js](https://github.com/alpinejs/alpine).
 
+## Current MO
+
+I've just been editing the \*.ftl files directly and pushing to production.
+
+## Pushing to production
+
+```bash
+rsync -avz /Users/ben/Sites/keywind/theme/keywind/login/ root@167.71.147.48:/srv/keycloak/volumes/themes/keywind/login/
+```
+
 ![Preview](./preview.png)
 
 ### Styled Pages

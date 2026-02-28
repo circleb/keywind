@@ -70,7 +70,7 @@
           </@button.kw>
         </@buttonGroup.kw>
       </@form.kw>
-      <@passkeys.conditionalUIData />
+      <#-- <@passkeys.conditionalUIData /> -->
     </#if>
   <#elseif section="socialProviders">
     <#if realm.password && social.providers??>
@@ -78,9 +78,15 @@
     </#if>
   </#if>
 </@layout.registrationLayout>
-<div class="text-center mt-4 text-sm">
+<div class="text-center mt-4 text-sm text-secondary-600 dark:text-gray-400">
   ${msg("noAccount")}
   <@link.kw color="primary" href="https://my.homesteadheritage.org/register">
     ${msg("doRegister")}
+  </@link.kw>
+</div>
+<div class="text-center">
+  <span class="text-sm text-secondary-600 dark:text-gray-400">Having trouble?</span>
+  <@link.kw color="primary" size="small" href="https://my.homesteadheritage.org/account/troubleshooting">
+    Visit our troubleshooting page
   </@link.kw>
 </div>
