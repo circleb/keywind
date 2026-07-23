@@ -29,7 +29,7 @@
               type="button"
               @click="showPassword = true"
             >
-              Login With Password
+              Sign in with Password
             </button>
           </@buttonGroup.kw>
         </div>

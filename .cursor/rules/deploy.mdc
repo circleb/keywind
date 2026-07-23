@@ -1,0 +1,43 @@
+---
+description: How to deploy Keywind (Keycloak login theme) changes to production
+globs: theme/**
+alwaysApply: false
+---
+
+# Keywind theme deploy
+
+Login theme source: `theme/keywind/`.
+Live Keycloak mounts themes from the droplet at:
+
+`/srv/keycloak/volumes/themes/keywind/` → container `/opt/keycloak/themes/keywind`
+
+(`VOLUMES_PATH=/srv/keycloak/volumes` in `/srv/keycloak/.env` — **not** `/srv/keycloak/providers` or `/srv/keycloak/themes`.)
+
+## Push a changed file
+
+SSH/SCP as `root@167.71.147.48`. Mirror the path under `theme/keywind/` onto the volumes themes dir.
+
+```bash
+# From the keywind repo root — example for login.ftl
+scp theme/keywind/login/login.ftl \
+  root@167.71.147.48:/srv/keycloak/volumes/themes/keywind/login/login.ftl
+
+# identity-provider molecule
+scp theme/keywind/login/components/molecules/identity-provider.ftl \
+  root@167.71.147.48:/srv/keycloak/volumes/themes/keywind/login/components/molecules/identity-provider.ftl
+```
+
+After upload: hard-refresh the login page. Restart only if the change does not appear:
+
+```bash
+ssh root@167.71.147.48 'cd /srv/keycloak && docker compose restart keycloak'
+```
+
+## CSS / Tailwind caveat
+
+`theme/keywind/login/resources/dist/index.css` is a **prebuilt** Tailwind bundle. Only utilities already present in that CSS apply (e.g. `gap-4`, `ml-2`). Classes like `gap-2` / `gap-5` are **no-ops**. Prefer inline `style="..."` for one-off spacing, or rebuild the Keywind CSS if you need new utilities.
+
+## Do not
+
+- Copy JARs/themes into `/srv/keycloak/providers/` or `/srv/keycloak/themes/` (those are not the compose mounts).
+- Assume Freemarker edits require `kc.sh build` — theme FTL under the volumes mount is enough.
