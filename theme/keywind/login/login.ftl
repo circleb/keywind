@@ -18,7 +18,7 @@
   section
 >
   <#if section="header">
-    ${msg("loginAccountTitle")}
+    ${msg("loginAccountTitle")} <br /> <div class="text-sm text-secondary-600 dark:text-gray-400">(not the same as Heritage Press)</div>
   <#elseif section="form">
     <#if realm.password>
       <div x-data="{ showPassword: false }">
